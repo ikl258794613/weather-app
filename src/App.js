@@ -136,7 +136,7 @@ const Refresh = styled.div`
   }
 `;
 
-// const KEY = process.env.REACT_APP_AUTHORIZATION_KEY;
+
 const AUTHORIZATION_KEY =  process.env.REACT_APP_AUTHORIZATION_KEY;
 const LOCATION_NAME = '臺北';
 const URL =   `https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization=${AUTHORIZATION_KEY}&locationName=${LOCATION_NAME}`
@@ -166,11 +166,16 @@ const App = () => {
         },
         {}
       );
-      setCurrentWeather((prevState)=>({
-        ...prevState,
+      setCurrentWeather({
+        observationTime: locationData.time.observationTime,
+        locationName: '臺北市',
+        description: '多雲時晴',
+        windSpeed: weatherElements.WDSD,
+        temperature: weatherElements.TEMP,
+        rainPossibility: 60,
         isLoading:false,
-      }));
-      console.log(weatherElements);
+      });
+      // console.log(weatherElements);
     })
   }
 
@@ -178,6 +183,7 @@ const App = () => {
     console.log('execute function in useEffect');
     axiosCurrentWeather();
   }, []);
+
   const {
     observationTime,
     locationName,
