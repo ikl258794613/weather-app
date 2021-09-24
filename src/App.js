@@ -139,23 +139,52 @@ const Refresh = styled.div`
 
 const AUTHORIZATION_KEY =  process.env.REACT_APP_AUTHORIZATION_KEY;
 const LOCATION_NAME = '臺北';
-const URL =   `https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization=${AUTHORIZATION_KEY}&locationName=${LOCATION_NAME}`
-
+const LOCATION_NAME_FORECAST = '臺北市';
+const weatherURL =   `https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization=${AUTHORIZATION_KEY}&locationName=${LOCATION_NAME}`
+const thirtySixURL =  `https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization=${AUTHORIZATION_KEY}&locationName=${LOCATION_NAME_FORECAST}`
 const App = () => {
   const [currentTheme, setCurrentTheme] = useState('light');
-  const [currentWeather, setCurrentWeather] = useState({
-    observationTime: '2020-12-12 22:10:00',
-    locationName: '臺北市',
-    description: '多雲時晴',
-    windSpeed: 3.6,
-    temperature: 32.1,
-    rainPossibility: 60,
-    isLoading:false,
+  const  [weatherElement, setWeatherElement]= useState({
+    observationTime: new Date(),
+    locationName: '',
+    temperature: 0,
+    windSpeed: 0,
+    description: '',
+    weatherCode: 0,
+    rainPossibility: 0,
+    comfortability: '',
+    isLoading: true,
   });
 
+  const  axiosWeatherForecast = ()=>{
+    axios.get(thirtySixURL).then((response)=>{
+      const thirtySixData = response.data.records.location[0]
+      const weatherElements = thirtySixData.weatherElement.reduce(
+        (neededElements, item) => {
+          if (['Wx', 'PoP', 'CI'].includes(item.elementName)) {
+            neededElements[item.elementName] = item.time[0].parameter;
+          }
+          return neededElements;
+        },
+        {}
+      );
+      setWeatherElement((prevState) => ({
+        ...prevState,
+        description: weatherElements.Wx.parameterName,
+        weatherCode: weatherElements.Wx.parameterValue,
+        rainPossibility: weatherElements.PoP.parameterName,
+        comfortability: weatherElements.CI.parameterName,
+      }));
+      
+    })
+  }
 
   const axiosCurrentWeather = () =>{
-    axios.get(URL).then((response)=>{
+    setWeatherElement((prevState) => ({
+      ...prevState,
+      isLoading: true,
+    }));
+    axios.get(weatherURL).then((response)=>{
       const locationData = response.data.records.location[0]
       const weatherElements = locationData.weatherElement.reduce(
         (neededElements, item) => {
@@ -166,22 +195,22 @@ const App = () => {
         },
         {}
       );
-      setCurrentWeather({
-        observationTime: locationData.time.observationTime,
-        locationName: '臺北市',
-        description: '多雲時晴',
-        windSpeed: weatherElements.WDSD,
+      setWeatherElement((prevState) => ({
+        ...prevState,
+        observationTime: locationData.time.obsTime,
+        locationName: locationData.locationName,
         temperature: weatherElements.TEMP,
-        rainPossibility: 60,
-        isLoading:false,
-      });
+        windSpeed: weatherElements.WDSD,
+        isLoading: false,
+      }));
       // console.log(weatherElements);
     })
   }
 
   useEffect(() => {
-    console.log('execute function in useEffect');
+    // console.log('execute function in useEffect');
     axiosCurrentWeather();
+    axiosWeatherForecast()
   }, []);
 
   const {
@@ -192,7 +221,8 @@ const App = () => {
     temperature,
     rainPossibility,
     isLoading,
-  } = currentWeather;
+    comfortability,
+  } = weatherElement;
 
   return (
     <ThemeProvider theme={theme[currentTheme]}>
@@ -200,7 +230,9 @@ const App = () => {
         {/* {console.log('render, isLoading: ', isLoading)} */}
         <WeatherCard>
           <Location>{locationName}</Location>
-          <Description>{description}</Description>
+          <Description>
+            {description} {comfortability}
+          </Description>
           <CurrentWeather>
             <Temperature>
               {Math.round(temperature)} <Celsius>°C</Celsius>
@@ -213,7 +245,10 @@ const App = () => {
           <Rain>
             <RainIcon /> {rainPossibility}%
           </Rain>
-          <Refresh onClick={axiosCurrentWeather} isLoading={isLoading}>
+          <Refresh onClick={()=>{
+            axiosWeatherForecast()
+            axiosCurrentWeather()
+          }} isLoading={isLoading}>
             最後觀測時間：
             {new Intl.DateTimeFormat('zh-TW', {
               hour: 'numeric',
