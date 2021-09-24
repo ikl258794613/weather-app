@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect ,useCallback} from "react";
 import styled from "@emotion/styled";
 import { useTheme, ThemeProvider, withTheme } from "@emotion/react";
 import dayjs from "dayjs";
@@ -198,26 +198,28 @@ const App = () => {
     comfortability: "",
     isLoading: true,
   });
+  //使用useCallback避免資料沒有更新但還是創造新的函式佔用記憶體,這邊是實務上提升效能的方法之一。但在這個sideproject中可用可不用。
+  const axiosData = useCallback(async () => {
+    setWeatherElement((prevState) => ({
+      ...prevState,
+      isLoading: true,
+    }));
+
+    const [currentWeather, weatherForecast] = await Promise.all([
+      axiosCurrentWeather(),
+      axiosWeatherForecast(),
+    ]);
+
+    setWeatherElement({
+      ...currentWeather,
+      ...weatherForecast,
+      isLoading: false,
+    });
+  }, [])
 
   useEffect(() => {
-    const axiosData = async () => {
-      setWeatherElement((prevState) => ({
-        ...prevState,
-        isLoading: true,
-      }));
-      const [currentWeather, weatherForecast] = await Promise.all([
-        axiosCurrentWeather(),
-        axiosWeatherForecast(),
-      ]);
-      setWeatherElement({
-        ...currentWeather,
-        ...weatherForecast,
-        isLoading: false,
-      });
-    };
-
     axiosData();
-  }, []);
+  }, [axiosData]);
 
   const {
     observationTime,
