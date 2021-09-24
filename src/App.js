@@ -1,31 +1,31 @@
-import React, { useState,useEffect } from 'react';
-import styled from '@emotion/styled';
-import { useTheme, ThemeProvider, withTheme } from '@emotion/react'
-import dayjs from 'dayjs'
-import axios from "axios"
-import { ReactComponent as AirFlowIcon } from './images/airFlow.svg';
-import { ReactComponent as DayCloudyIcon } from './images/day-cloudy.svg';
-import { ReactComponent as LoadingIcon } from './images/loading.svg';
-import { ReactComponent as RainIcon } from './images/rain.svg';
-import { ReactComponent as RefreshIcon } from './images/refresh.svg';
+import React, { useState, useEffect } from "react";
+import styled from "@emotion/styled";
+import { useTheme, ThemeProvider, withTheme } from "@emotion/react";
+import dayjs from "dayjs";
+import axios from "axios";
+import { ReactComponent as AirFlowIcon } from "./images/airFlow.svg";
+import { ReactComponent as DayCloudyIcon } from "./images/day-cloudy.svg";
+import { ReactComponent as LoadingIcon } from "./images/loading.svg";
+import { ReactComponent as RainIcon } from "./images/rain.svg";
+import { ReactComponent as RefreshIcon } from "./images/refresh.svg";
 
 const theme = {
   light: {
-    backgroundColor: '#ededed',
-    foregroundColor: '#f9f9f9',
-    boxShadow: '0 1px 3px 0 #999999',
-    titleColor: '#212121',
-    temperatureColor: '#757575',
-    textColor: '#828282',
+    backgroundColor: "#ededed",
+    foregroundColor: "#f9f9f9",
+    boxShadow: "0 1px 3px 0 #999999",
+    titleColor: "#212121",
+    temperatureColor: "#757575",
+    textColor: "#828282",
   },
   dark: {
-    backgroundColor: '#1F2022',
-    foregroundColor: '#121416',
+    backgroundColor: "#1F2022",
+    foregroundColor: "#121416",
     boxShadow:
-      '0 1px 4px 0 rgba(12, 12, 13, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.15)',
-    titleColor: '#f9f9fa',
-    temperatureColor: '#dddddd',
-    textColor: '#cccccc',
+      "0 1px 4px 0 rgba(12, 12, 13, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.15)",
+    titleColor: "#f9f9fa",
+    temperatureColor: "#dddddd",
+    textColor: "#cccccc",
   },
 };
 
@@ -123,7 +123,7 @@ const Refresh = styled.div`
     cursor: pointer;
     /* STEP 2：使用 rotate 動畫效果在 svg 圖示上 */
     animation: rotate infinite 1.5s linear;
-    animation-duration: ${({ isLoading }) => (isLoading ? '1.5s' : '0s')};
+    animation-duration: ${({ isLoading }) => (isLoading ? "1.5s" : "0s")};
   }
   /* STEP 1：定義旋轉的動畫效果，並取名為 rotate */
   @keyframes rotate {
@@ -136,81 +136,87 @@ const Refresh = styled.div`
   }
 `;
 
+const AUTHORIZATION_KEY = process.env.REACT_APP_AUTHORIZATION_KEY;
+const LOCATION_NAME = "臺北";
+const LOCATION_NAME_FORECAST = "臺北市";
+const weatherURL = `https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization=${AUTHORIZATION_KEY}&locationName=${LOCATION_NAME}`;
+const thirtySixURL = `https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization=${AUTHORIZATION_KEY}&locationName=${LOCATION_NAME_FORECAST}`;
 
-const AUTHORIZATION_KEY =  process.env.REACT_APP_AUTHORIZATION_KEY;
-const LOCATION_NAME = '臺北';
-const LOCATION_NAME_FORECAST = '臺北市';
-const weatherURL =   `https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization=${AUTHORIZATION_KEY}&locationName=${LOCATION_NAME}`
-const thirtySixURL =  `https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization=${AUTHORIZATION_KEY}&locationName=${LOCATION_NAME_FORECAST}`
+const axiosWeatherForecast = () => {
+  return axios.get(thirtySixURL).then((response) => {
+    const thirtySixData = response.data.records.location[0];
+    const weatherElements = thirtySixData.weatherElement.reduce(
+      (neededElements, item) => {
+        if (["Wx", "PoP", "CI"].includes(item.elementName)) {
+          neededElements[item.elementName] = item.time[0].parameter;
+        }
+        return neededElements;
+      },
+      {}
+    );
+    return {
+      description: weatherElements.Wx.parameterName,
+      weatherCode: weatherElements.Wx.parameterValue,
+      rainPossibility: weatherElements.PoP.parameterName,
+      comfortability: weatherElements.CI.parameterName,
+    };
+  });
+};
+
+const axiosCurrentWeather = () => {
+  return axios.get(weatherURL).then((response) => {
+    const locationData = response.data.records.location[0];
+    const weatherElements = locationData.weatherElement.reduce(
+      (neededElements, item) => {
+        if (["WDSD", "TEMP"].includes(item.elementName)) {
+          neededElements[item.elementName] = item.elementValue;
+        }
+        return neededElements;
+      },
+      {}
+    );
+    return {
+      observationTime: locationData.time.obsTime,
+      locationName: locationData.locationName,
+      temperature: weatherElements.TEMP,
+      windSpeed: weatherElements.WDSD,
+    };
+    // console.log(weatherElements);
+  });
+};
+
 const App = () => {
-  const [currentTheme, setCurrentTheme] = useState('light');
-  const  [weatherElement, setWeatherElement]= useState({
+  const [currentTheme, setCurrentTheme] = useState("light");
+  const [weatherElement, setWeatherElement] = useState({
     observationTime: new Date(),
-    locationName: '',
+    locationName: "",
     temperature: 0,
     windSpeed: 0,
-    description: '',
+    description: "",
     weatherCode: 0,
     rainPossibility: 0,
-    comfortability: '',
+    comfortability: "",
     isLoading: true,
   });
 
-  const  axiosWeatherForecast = ()=>{
-    axios.get(thirtySixURL).then((response)=>{
-      const thirtySixData = response.data.records.location[0]
-      const weatherElements = thirtySixData.weatherElement.reduce(
-        (neededElements, item) => {
-          if (['Wx', 'PoP', 'CI'].includes(item.elementName)) {
-            neededElements[item.elementName] = item.time[0].parameter;
-          }
-          return neededElements;
-        },
-        {}
-      );
-      setWeatherElement((prevState) => ({
-        ...prevState,
-        description: weatherElements.Wx.parameterName,
-        weatherCode: weatherElements.Wx.parameterValue,
-        rainPossibility: weatherElements.PoP.parameterName,
-        comfortability: weatherElements.CI.parameterName,
-      }));
-      
-    })
-  }
-
-  const axiosCurrentWeather = () =>{
-    setWeatherElement((prevState) => ({
-      ...prevState,
-      isLoading: true,
-    }));
-    axios.get(weatherURL).then((response)=>{
-      const locationData = response.data.records.location[0]
-      const weatherElements = locationData.weatherElement.reduce(
-        (neededElements, item) => {
-          if (['WDSD', 'TEMP'].includes(item.elementName)) {
-            neededElements[item.elementName] = item.elementValue;
-          }
-          return neededElements;
-        },
-        {}
-      );
-      setWeatherElement((prevState) => ({
-        ...prevState,
-        observationTime: locationData.time.obsTime,
-        locationName: locationData.locationName,
-        temperature: weatherElements.TEMP,
-        windSpeed: weatherElements.WDSD,
-        isLoading: false,
-      }));
-      // console.log(weatherElements);
-    })
-  }
-
   useEffect(() => {
-    // console.log('execute function in useEffect');
-    axiosCurrentWeather();
-    axiosWeatherForecast()
+    const axiosData = async () => {
+      setWeatherElement((prevState) => ({
+        ...prevState,
+        isLoading: true,
+      }));
+      const [currentWeather, weatherForecast] = await Promise.all([
+        axiosCurrentWeather(),
+        axiosWeatherForecast(),
+      ]);
+      setWeatherElement({
+        ...currentWeather,
+        ...weatherForecast,
+        isLoading: false,
+      });
+    };
+
+    axiosData();
   }, []);
 
   const {
@@ -245,15 +251,18 @@ const App = () => {
           <Rain>
             <RainIcon /> {rainPossibility}%
           </Rain>
-          <Refresh onClick={()=>{
-            axiosWeatherForecast()
-            axiosCurrentWeather()
-          }} isLoading={isLoading}>
+          <Refresh
+            onClick={() => {
+              axiosWeatherForecast();
+              axiosCurrentWeather();
+            }}
+            isLoading={isLoading}
+          >
             最後觀測時間：
-            {new Intl.DateTimeFormat('zh-TW', {
-              hour: 'numeric',
-              minute: 'numeric',
-            }).format(dayjs(observationTime))}{' '}
+            {new Intl.DateTimeFormat("zh-TW", {
+              hour: "numeric",
+              minute: "numeric",
+            }).format(dayjs(observationTime))}{" "}
             {isLoading ? <LoadingIcon /> : <RefreshIcon />}
           </Refresh>
         </WeatherCard>
