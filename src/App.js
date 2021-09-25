@@ -1,4 +1,4 @@
-import React, { useState, useEffect ,useCallback} from "react";
+import React, { useState, useEffect ,useCallback,useMemo} from "react";
 import styled from "@emotion/styled";
 import { useTheme, ThemeProvider, withTheme } from "@emotion/react";
 import dayjs from "dayjs";
@@ -8,6 +8,7 @@ import { ReactComponent as DayCloudyIcon } from "./images/day-cloudy.svg";
 import { ReactComponent as LoadingIcon } from "./images/loading.svg";
 import { ReactComponent as RainIcon } from "./images/rain.svg";
 import { ReactComponent as RefreshIcon } from "./images/refresh.svg";
+import { getMoment } from "./utils/helpers"
 import WeatherIcon from "./components/WeatherIcon" ;
 
 const theme = {
@@ -199,6 +200,7 @@ const App = () => {
     comfortability: "",
     isLoading: true,
   });
+  const moment = useMemo(()=>getMoment(LOCATION_NAME_FORECAST),[LOCATION_NAME_FORECAST]) 
   //使用useCallback避免資料沒有更新但還是創造新的函式佔用記憶體,這邊是實務上提升效能的方法之一。但在這個sideproject中可用可不用。
   const axiosData = useCallback(async () => {
     setWeatherElement((prevState) => ({
@@ -218,6 +220,9 @@ const App = () => {
     });
   }, [])
 
+  useEffect(()=>{
+    setCurrentTheme(moment === 'day' ? 'light':'night')
+  },[moment])
   useEffect(() => {
     axiosData();
   }, [axiosData]);
@@ -231,6 +236,7 @@ const App = () => {
     rainPossibility,
     isLoading,
     comfortability,
+    weatherCode,
   } = weatherElement;
 
   return (
@@ -246,7 +252,7 @@ const App = () => {
             <Temperature>
               {Math.round(temperature)} <Celsius>°C</Celsius>
             </Temperature>
-            <WeatherIcon/>
+            <WeatherIcon weatherCode = {weatherCode} moment={moment}/>
           </CurrentWeather>
           <AirFlow>
             <AirFlowIcon /> {windSpeed} m/h

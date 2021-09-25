@@ -12,7 +12,7 @@ import { ReactComponent as NightFog } from "./../images/night-fog.svg";
 import { ReactComponent as NightPartiallyClearWithRain } from "./../images/night-partially-clear-with-rain.svg";
 import { ReactComponent as NightSnowing } from "./../images/night-snowing.svg";
 import { ReactComponent as NightThunderstorm } from "./../images/night-thunderstorm.svg";
-import React from "react";
+import React ,{ useMemo }from "react";
 import styled from "@emotion/styled";
 
 const IconContainer = styled.div`
@@ -65,10 +65,13 @@ const weatherCode2Type = (weatherCode) => {
 };
 
 
-const WeatherIcon = () => {
+const WeatherIcon = ({weatherCode,moment}) => {
+  const weatherType = useMemo(()=> weatherCode2Type(weatherCode),[weatherCode]) 
+  const weatherIcon = weatherIcons[moment][weatherType]
+  
   return (
     <IconContainer>
-      <DayCloudy />
+      {weatherIcon}
     </IconContainer>
   );
 };
