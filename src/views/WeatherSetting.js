@@ -93,14 +93,20 @@ const Save = styled.button`
   }
 `
 
-const WeatherSetting = ({ handleCurrentPageChange }) => {
-  const [locationName, setLocationName] = useState('臺北市')
+const WeatherSetting = ({
+  handleCurrentPageChange,
+  handleCurrentCityChange,
+  cityName,
+}) => {
+  const [locationName, setLocationName] = useState(cityName)
   const handleChange = (e) => {
     // console.log(e.target.value)
     setLocationName(e.target.value)
   }
   const handleSave = () => {
-    console.log(locationName)
+    handleCurrentCityChange(locationName)
+    handleCurrentPageChange('WeatherCard')
+    localStorage.setItem('cityName', locationName)
   }
   return (
     <WeatherSettingWrapper>

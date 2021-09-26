@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import styled from '@emotion/styled'
 import { useTheme, ThemeProvider, withTheme } from '@emotion/react'
-import { getMoment } from './utils/helpers'
+import { getMoment, findLocation } from './utils/helpers'
 import WeatherCard from './views/WeatherCard'
 import WeatherSetting from './views/WeatherSetting'
 import useWeatherAPI from './hooks/useWeatherAPI'
+
 const theme = {
   light: {
     backgroundColor: '#ededed',
@@ -34,22 +35,35 @@ const Container = styled.div`
 `
 
 const AUTHORIZATION_KEY = process.env.REACT_APP_AUTHORIZATION_KEY
-const LOCATION_NAME = '臺北'
-const LOCATION_NAME_FORECAST = '臺北市'
+// const LOCATION_NAME = '臺北'
+// const LOCATION_NAME_FORECAST = '臺北市'
 
 const App = () => {
-  const [weatherElement, axiosData] = useWeatherAPI({
-    locationName: LOCATION_NAME,
-    cityName: LOCATION_NAME_FORECAST,
-    authorizationKey: AUTHORIZATION_KEY,
-  })
+  const storageCity = localStorage.getItem('cityName') || '臺北市'
   const [currentTheme, setCurrentTheme] = useState('light')
   const [currentPage, setCurrentpage] = useState('WeatherCard')
+  const [currentCity, setCurrentcity] = useState(storageCity)
 
-  const moment = useMemo(() => getMoment(LOCATION_NAME_FORECAST), [])
+  const handleCurrentCityChange = (currentCity) => {
+    setCurrentcity(currentCity)
+  }
   const handleCurrentPageChange = (currentPage) => {
     setCurrentpage(currentPage)
   }
+
+  const currentLocation = useMemo(
+    () => findLocation(currentCity),
+    [currentCity]
+  )
+
+  const { cityName, locationName, sunriseCityName } = currentLocation
+  const moment = useMemo(() => getMoment(sunriseCityName), [sunriseCityName])
+  const [weatherElement, axiosData] = useWeatherAPI({
+    locationName,
+    cityName,
+    authorizationKey: AUTHORIZATION_KEY,
+  })
+
   useEffect(() => {
     setCurrentTheme(moment === 'day' ? 'light' : 'night')
   }, [moment])
@@ -59,6 +73,7 @@ const App = () => {
       <Container>
         {currentPage === 'WeatherCard' && (
           <WeatherCard
+            cityName={cityName}
             weatherElement={weatherElement}
             moment={moment}
             axiosData={axiosData}
@@ -66,7 +81,11 @@ const App = () => {
           />
         )}
         {currentPage === 'WeatherSetting' && (
-          <WeatherSetting handleCurrentPageChange={handleCurrentPageChange} />
+          <WeatherSetting
+            cityName={cityName}
+            handleCurrentPageChange={handleCurrentPageChange}
+            handleCurrentCityChange={handleCurrentCityChange}
+          />
         )}
       </Container>
     </ThemeProvider>
