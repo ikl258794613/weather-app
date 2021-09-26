@@ -45,8 +45,11 @@ const App = () => {
   })
   const [currentTheme, setCurrentTheme] = useState('light')
   const [currentPage, setCurrentpage] = useState('WeatherCard')
-  const moment = useMemo(() => getMoment(LOCATION_NAME_FORECAST), [])
 
+  const moment = useMemo(() => getMoment(LOCATION_NAME_FORECAST), [])
+  const handleCurrentPageChange = (currentPage) => {
+    setCurrentpage(currentPage)
+  }
   useEffect(() => {
     setCurrentTheme(moment === 'day' ? 'light' : 'night')
   }, [moment])
@@ -59,9 +62,12 @@ const App = () => {
             weatherElement={weatherElement}
             moment={moment}
             axiosData={axiosData}
+            handleCurrentPageChange={handleCurrentPageChange}
           />
         )}
-        {currentPage === 'WeatherSetting' && <WeatherSetting />}
+        {currentPage === 'WeatherSetting' && (
+          <WeatherSetting handleCurrentPageChange={handleCurrentPageChange} />
+        )}
       </Container>
     </ThemeProvider>
   )
