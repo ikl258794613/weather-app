@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useRef } from 'react'
 import styled from '@emotion/styled'
 import { availableLocations } from './../utils/helpers'
 
@@ -94,13 +94,12 @@ const Save = styled.button`
 `
 
 const WeatherSetting = ({ handleCurrentPageChange }) => {
-  const [locationName, setLocationName] = useState('臺北市')
+  const inputLocationRef = useRef(null)
   const handleChange = (e) => {
     // console.log(e.target.value)
-    setLocationName(e.target.value)
   }
   const handleSave = () => {
-    console.log(locationName)
+    console.log(inputLocationRef.current.value)
   }
   return (
     <WeatherSettingWrapper>
@@ -111,7 +110,8 @@ const WeatherSetting = ({ handleCurrentPageChange }) => {
         id="location"
         name="location"
         onChange={handleChange}
-        value={locationName}
+        ref={inputLocationRef}
+        defaultValue="臺北市"
       >
         {availableLocations.map(({ cityName }) => (
           <option value={cityName} key={cityName}>
