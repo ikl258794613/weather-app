@@ -1,11 +1,11 @@
-import React from 'react';
-import styled from '@emotion/styled';
-import dayjs from 'dayjs';
-import WeatherIcon from './../components/WeatherIcon.js';
-import { ReactComponent as AirFlowIcon } from './../images/airFlow.svg';
-import { ReactComponent as RainIcon } from './../images/rain.svg';
-import { ReactComponent as RefreshIcon } from './../images/refresh.svg';
-import { ReactComponent as LoadingIcon } from './../images/loading.svg';
+import React from 'react'
+import styled from '@emotion/styled'
+import dayjs from 'dayjs'
+import WeatherIcon from './../components/WeatherIcon.js'
+import { ReactComponent as AirFlowIcon } from './../images/airFlow.svg'
+import { ReactComponent as RainIcon } from './../images/rain.svg'
+import { ReactComponent as RefreshIcon } from './../images/refresh.svg'
+import { ReactComponent as LoadingIcon } from './../images/loading.svg'
 
 const WeatherCardWrapper = styled.div`
   position: relative;
@@ -14,38 +14,38 @@ const WeatherCardWrapper = styled.div`
   background-color: ${({ theme }) => theme.foregroundColor};
   box-sizing: border-box;
   padding: 30px 15px;
-`;
+`
 
 const Location = styled.div`
   font-size: 28px;
   color: ${({ theme }) => theme.titleColor};
   margin-bottom: 20px;
-`;
+`
 
 const Description = styled.div`
   font-size: 16px;
   color: ${({ theme }) => theme.textColor};
   margin-bottom: 30px;
-`;
+`
 
 const CurrentWeather = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
-`;
+`
 
 const Temperature = styled.div`
   color: ${({ theme }) => theme.temperatureColor};
   font-size: 96px;
   font-weight: 300;
   display: flex;
-`;
+`
 
 const Celsius = styled.div`
   font-weight: normal;
   font-size: 42px;
-`;
+`
 
 const AirFlow = styled.div`
   display: flex;
@@ -59,7 +59,7 @@ const AirFlow = styled.div`
     height: auto;
     margin-right: 30px;
   }
-`;
+`
 
 const Rain = styled.div`
   display: flex;
@@ -72,7 +72,7 @@ const Rain = styled.div`
     height: auto;
     margin-right: 30px;
   }
-`;
+`
 
 const Refresh = styled.div`
   position: absolute;
@@ -98,7 +98,7 @@ const Refresh = styled.div`
       transform: rotate(0deg);
     }
   }
-`;
+`
 
 const WeatherCard = ({ weatherElement, moment, axiosData }) => {
   const {
@@ -111,7 +111,7 @@ const WeatherCard = ({ weatherElement, moment, axiosData }) => {
     rainPossibility,
     comfortability,
     isLoading,
-  } = weatherElement;
+  } = weatherElement
 
   return (
     <WeatherCardWrapper>
@@ -133,14 +133,14 @@ const WeatherCard = ({ weatherElement, moment, axiosData }) => {
       </Rain>
       <Refresh onClick={axiosData} isLoading={isLoading}>
         最後觀測時間：
-        {new Intl.DateTimeFormat("zh-TW", {
-          hour: "numeric",
-          minute: "numeric",
-        }).format(dayjs(observationTime))}{" "}
+        {new Intl.DateTimeFormat('zh-TW', {
+          hour: 'numeric',
+          minute: 'numeric',
+        }).format(dayjs(observationTime))}{' '}
         {isLoading ? <LoadingIcon /> : <RefreshIcon />}
       </Refresh>
     </WeatherCardWrapper>
-  );
-};
+  )
+}
 
-export default WeatherCard;
+export default WeatherCard
